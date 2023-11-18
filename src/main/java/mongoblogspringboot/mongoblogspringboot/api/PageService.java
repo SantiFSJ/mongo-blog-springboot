@@ -1,6 +1,6 @@
 package mongoblogspringboot.mongoblogspringboot.api;
 
-import mongoblogspringboot.mongoblogspringboot.dto.Page;
+import mongoblogspringboot.mongoblogspringboot.model.Page;
 
 import java.util.List;
 

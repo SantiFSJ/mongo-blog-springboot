@@ -1,29 +1,38 @@
 package mongoblogspringboot.mongoblogspringboot.services;
 
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import mongoblogspringboot.mongoblogspringboot.api.PageService;
-import mongoblogspringboot.mongoblogspringboot.dto.Page;
+import mongoblogspringboot.mongoblogspringboot.model.Page;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class PageServiceImpl implements PageService {
+public class PageServiceImpl extends MongoGenericService implements PageService {
 
-    public List<Page> findById(String id){
-
-        try (MongoClient mongoClient = MongoClients.create();) {
-            //Obtengo la BD y la Colección
-            MongoDatabase database = mongoClient.getDatabase("unaDb");
-            MongoCollection collection = database.getCollection("unaColección");
-
+    public List<Page> findById(String id) {
+        List<Page> pages;
+        try {
+            pages = inTx(collection -> {
+                return collection.find(Filters.eq("_id", new ObjectId(id)))
+                        .map(document -> Page.builder()
+                                .id(String.valueOf(document.getObjectId("_id")))
+                                .title(document.getString("title"))
+                                .text(document.getString("text"))
+                                .author(document.getString("author"))
+                                .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                                .build())
+                        .into(new ArrayList<>());
+            }, "pages");
+        } catch (Exception e) {
+            throw e;
         }
-
-        return null;
+        return pages;
     }
 
 }
