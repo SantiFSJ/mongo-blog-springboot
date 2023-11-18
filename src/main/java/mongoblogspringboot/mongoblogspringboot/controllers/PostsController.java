@@ -29,7 +29,7 @@ public class PostsController {
         return this.postService.findLatestPosts();
     }
 
-    @GetMapping("/posts-autor/{nombreautor}")
+    @GetMapping("/author/{nombreautor}")
     public List<Post> getPostsByAuthor(@PathVariable String nombreautor) {
         return this.postService.findPostsByAuthor(nombreautor);
     }
