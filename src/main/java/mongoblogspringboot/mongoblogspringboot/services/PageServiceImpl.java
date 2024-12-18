@@ -4,35 +4,30 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.model.Filters;
 import mongoblogspringboot.mongoblogspringboot.api.PageService;
 import mongoblogspringboot.mongoblogspringboot.model.Page;
+import mongoblogspringboot.mongoblogspringboot.repositories.PageRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class PageServiceImpl extends MongoGenericService implements PageService {
+public class PageServiceImpl implements PageService {
+    private final PageRepository pageRepository;
+
+    public PageServiceImpl(PageRepository pageRepository) {
+        this.pageRepository = pageRepository;
+    }
 
     public List<Page> findById(String id) {
-        List<Page> pages;
-        try {
-            pages = inTx(collection -> {
-                return collection.find(Filters.eq("_id", new ObjectId(id)))
-                        .map(document -> Page.builder()
-                                .id(String.valueOf(document.getObjectId("_id")))
-                                .title(document.getString("title"))
-                                .text(document.getString("text"))
-                                .author(document.getString("author"))
-                                .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                                .build())
-                        .into(new ArrayList<>());
-            }, "pages");
-        } catch (Exception e) {
-            throw e;
-        }
-        return pages;
+        Optional<Page> optionalPage = this.pageRepository.findById((id));
+        return optionalPage
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
     }
 
 }
