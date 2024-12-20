@@ -14,13 +14,13 @@ public interface PostRepository extends ElasticsearchRepository<Post, String> {
         return findAll(PageRequest.of(0, 4, Sort.by(Sort.Order.desc("date")))).getContent();
     }
 
-    @Query("""
-    {
-      "match": {
-        "author": "?0"
-      }
-    }
-    """)
+    @Query(value = """
+            {
+              "match": {
+                "author": "?0"
+              }
+            }
+            """)
     List<Post> findByAuthor(String author);
 
     @Query(" { \"wildcard\": { \"text\": { \"value\": \"?0*\" } }  }")

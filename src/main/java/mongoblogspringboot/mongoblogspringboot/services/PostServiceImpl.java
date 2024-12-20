@@ -2,24 +2,14 @@ package mongoblogspringboot.mongoblogspringboot.services;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.aggregations.*;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mongoblogspringboot.mongoblogspringboot.api.PostService;
 import mongoblogspringboot.mongoblogspringboot.dto.AuthorPostCount;
 import mongoblogspringboot.mongoblogspringboot.model.Post;
 import mongoblogspringboot.mongoblogspringboot.repositories.PostRepository;
 
-import org.elasticsearch.client.RequestOptions;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
-import org.springframework.data.elasticsearch.client.erhlc.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.client.erhlc.NativeSearchQuery;
-import org.springframework.data.elasticsearch.client.erhlc.RestClients;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -33,13 +23,11 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
 
     private final ElasticsearchClient elasticsearchClient;
-    private final ObjectMapper objectMapper;
 
 
-    public PostServiceImpl(PostRepository postRepository, ElasticsearchClient elasticsearchClient, ObjectMapper objectMapper) {
+    public PostServiceImpl(PostRepository postRepository, ElasticsearchClient elasticsearchClient) {
         this.postRepository = postRepository;
         this.elasticsearchClient = elasticsearchClient;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -74,7 +62,7 @@ public class PostServiceImpl implements PostService {
     public List<AuthorPostCount> countPostsByAuthor() {
         SearchRequest searchRequest = SearchRequest.of(b -> b
                 .index("posts")
-                .size(0) // No necesitamos resultados de documentos
+                .size(0)
                 .aggregations("posts_by_author", a -> a
                         .terms(t -> t
                                 .field("author")
@@ -83,7 +71,6 @@ public class PostServiceImpl implements PostService {
                 )
         );
 
-        // Ejecuta la consulta
         SearchResponse<Void> response = null;
         try {
             response = elasticsearchClient.search(searchRequest, Void.class);
@@ -91,16 +78,15 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException(e);
         }
 
-        // Obtención de la agregación
+
         StringTermsAggregate  termsAggregate = response.aggregations()
                 .get("posts_by_author")
                 .sterms();
 
-        // Mapeo de los buckets a AuthorPostCount
         List<AuthorPostCount> authorPostCounts = new ArrayList<>();
        for (StringTermsBucket bucket : termsAggregate.buckets().array()) {
-            String author = bucket.key().stringValue(); // Nombre del autor
-            int count = (int) bucket.docCount();   // Número de posteos
+            String author = bucket.key().stringValue();
+            int count = (int) bucket.docCount();
             authorPostCounts.add(new AuthorPostCount(author, count));
         }
 

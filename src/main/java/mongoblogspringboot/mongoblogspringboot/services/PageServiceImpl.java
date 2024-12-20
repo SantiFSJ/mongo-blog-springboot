@@ -1,16 +1,10 @@
 package mongoblogspringboot.mongoblogspringboot.services;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.model.Filters;
 import mongoblogspringboot.mongoblogspringboot.api.PageService;
 import mongoblogspringboot.mongoblogspringboot.model.Page;
 import mongoblogspringboot.mongoblogspringboot.repositories.PageRepository;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
